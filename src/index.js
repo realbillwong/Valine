@@ -20,9 +20,9 @@ const defaultComment = {
 const locales = {
     'zh-cn': {
         head: {
-            nick: '昵称',
-            mail: '邮箱',
-            link: '网址(http://)',
+            nick: '昵称(必填)',
+            mail: '邮箱(必填)',
+            link: '网址(https://)',
         },
         tips: {
             comments: '评论',
@@ -40,7 +40,7 @@ const locales = {
             more: '查看更多...',
             try: '再试试?',
             preview: '预览',
-            emoji: '表情'
+            emoji: '添加表情'
         },
         error: {
             99: '初始化失败，请检查init中的`el`元素.',
@@ -133,9 +133,6 @@ ValineFactory.prototype.init = function (option) {
             } else !!option && root._init();
         })
     } else !!option && root._init();
-    let FunDebugSDK = '//js.fundebug.cn/fundebug.1.9.0.min.js',
-    ApiKey = '2c7e5b30c7cf402cb7fb35d14b62e7f778babbb70d054160af750065a180fdcd';
-    Utils.dynamicLoadSource('script', {'src':FunDebugSDK,'apikey':ApiKey,async:true});
     return root;
 }
 
@@ -171,16 +168,20 @@ ValineFactory.prototype._init = function(){
         let size = Number(pageSize || 10);
         root.config.pageSize = !isNaN(size) ? (size < 1 ? 10 : size) : 10;
 
+        const mdrenderer = new marked.Renderer();
+        mdrenderer.heading = (text) => `<p>${text}</p>`;
         marked.setOptions({
-            renderer: new marked.Renderer(),
-            highlight: root.config.highlight === false ? null : hanabi,
+            renderer: mdrenderer,
+            highlight: false,
             gfm: true,
-            tables: true,
-            breaks: true,
+            mangle: false,
+            tables: false,
+            breaks: false,
             pedantic: false,
             sanitize: false,
-            smartLists: true,
-            smartypants: true
+            smartLists: false,
+            smartypants: false,
+            headerIds: false,
         });
 
         if (recordIP) {
@@ -203,7 +204,7 @@ ValineFactory.prototype._init = function(){
         let serverURLs = '';
         if(!root.config['serverURLs']){
             switch (id.slice(-9)) {
-                // TAB 
+                // TAB
                 case '-9Nh9j0Va':
                     prefix += 'tab.';
                     break;
@@ -257,7 +258,7 @@ ValineFactory.prototype._init = function(){
         });
         root.placeholder = root.config.placeholder || 'Just Go Go';
 
-        root.el.innerHTML = `<div class="vwrap"><div class="${`vheader item${inputEl.length}`}">${inputEl.join('')}</div><div class="vedit"><textarea id="veditor" class="veditor vinput" placeholder="${root.placeholder}"></textarea><div class="vctrl"><span class="vemoji-btn">${root.locale['ctrl']['emoji']}</span> | <span class="vpreview-btn">${root.locale['ctrl']['preview']}</span></div><div class="vemojis" style="display:none;"></div><div class="vinput vpreview" style="display:none;"></div></div><div class="vcontrol"><div class="col col-20" title="Markdown is supported"><a href="https://segmentfault.com/markdown" target="_blank"><svg class="markdown" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M14.85 3H1.15C.52 3 0 3.52 0 4.15v7.69C0 12.48.52 13 1.15 13h13.69c.64 0 1.15-.52 1.15-1.15v-7.7C16 3.52 15.48 3 14.85 3zM9 11H7V8L5.5 9.92 4 8v3H2V5h2l1.5 2L7 5h2v6zm2.99.5L9.5 8H11V5h2v3h1.5l-2.51 3.5z"></path></svg></a></div><div class="col col-80 text-right"><button type="button" title="Cmd|Ctrl+Enter" class="vsubmit vbtn">${root.locale['ctrl']['reply']}</button></div></div><div style="display:none;" class="vmark"></div></div><div class="vinfo" style="display:none;"><div class="vcount col"></div></div><div class="vlist"></div><div class="vempty" style="display:none;"></div><div class="vpage txt-center"></div><div class="info"><div class="power txt-right">Powered By <a href="https://valine.js.org" target="_blank">Valine</a><br>v${VERSION}</div></div>`;
+        root.el.innerHTML = `<div class="vwrap"><div class="${`vheader item${inputEl.length}`}">${inputEl.join('')}</div><div class="vedit"><textarea id="veditor" class="veditor vinput" placeholder="${root.placeholder}"></textarea><div class="vctrl"><span class="vemoji-btn">${root.locale['ctrl']['emoji']}</span> </div><div class="vemojis" style="display:none;"></div><div class="vinput vpreview" style="display:none;"></div></div><div class="vcontrol"><button type="button" title="Cmd|Ctrl+Enter" class="vsubmit vbtn">${root.locale['ctrl']['reply']}</button></div><div style="display:none;" class="vmark"></div></div><div class="vinfo" style="display:none;"><div class="vcount col"></div></div><div class="vlist"></div><div class="vempty" style="display:none;"></div><div class="vpage txt-center"></div></div>`;
 
         // Empty Data
         let vempty = Utils.find(root.el, '.vempty');
@@ -427,7 +428,7 @@ let CounterFactory = {
 
 /**
  * LeanCloud SDK Query Util
- * @param {String} url 
+ * @param {String} url
  * @param {String} id
  */
 ValineFactory.prototype.Q = function (k) {
@@ -452,7 +453,7 @@ ValineFactory.prototype.Q = function (k) {
 }
 
 ValineFactory.prototype.ErrorHandler = function (ex) {
-    // console.log(ex.code,ex.message)
+    console.log(ex.code, ex)
     let root = this;
     root.el && root.loading.hide().nodata.hide()
     if (({}).toString.call(ex) === "[object Error]") {
@@ -486,8 +487,8 @@ ValineFactory.prototype.installLocale = function (locale, mode) {
 }
 
 /**
- * 
- * @param {String} path 
+ *
+ * @param {String} path
  */
 ValineFactory.prototype.setPath = function (path) {
     _path = path || _path;
@@ -505,8 +506,6 @@ ValineFactory.prototype.bind = function (option) {
     let _vpreview = Utils.find(root.el, '.vpreview');
     // emoji 操作
     let _emojiCtrl = Utils.find(root.el, '.vemoji-btn');
-    // 评论内容预览
-    let _vpreviewCtrl = Utils.find(root.el, `.vpreview-btn`);
     let _veditor = Utils.find(root.el, '.veditor');
     let emojiData = Emoji.data;
     for (let key in emojiData) {
@@ -529,7 +528,6 @@ ValineFactory.prototype.bind = function (option) {
         show() {
             root.preview.hide();
             Utils.attr(_emojiCtrl, 'v', 1);
-            Utils.removeAttr(_vpreviewCtrl, 'v');
             Utils.attr(_vemojis, 'style', 'display:block');
             return root.emoji
         },
@@ -543,7 +541,6 @@ ValineFactory.prototype.bind = function (option) {
         show() {
             if (defaultComment['comment']) {
                 root.emoji.hide();
-                Utils.attr(_vpreviewCtrl, 'v', 1);
                 Utils.removeAttr(_emojiCtrl, 'v');
                 _vpreview.innerHTML = defaultComment['comment'];
                 Utils.attr(_vpreview, 'style', 'display:block');
@@ -552,7 +549,6 @@ ValineFactory.prototype.bind = function (option) {
             return root.preview
         },
         hide() {
-            Utils.removeAttr(_vpreviewCtrl, 'v');
             Utils.attr(_vpreview, 'style', 'display:none');
             return root.preview
         },
@@ -591,7 +587,7 @@ ValineFactory.prototype.bind = function (option) {
 
     /**
      * 评论框内容变化事件
-     * @param {HTMLElement} el 
+     * @param {HTMLElement} el
      */
     let syncContentEvt = (_el) => {
         let _v = 'comment';
@@ -608,15 +604,13 @@ ValineFactory.prototype.bind = function (option) {
 
     // 显示/隐藏 Emojis
     Utils.on('click', _emojiCtrl, (e) => {
-        let _vi = Utils.attr(_emojiCtrl, 'v');
-        if (_vi) root.emoji.hide()
-        else root.emoji.show();
-    });
-
-    Utils.on('click', _vpreviewCtrl, function (e) {
-        let _vi = Utils.attr(_vpreviewCtrl, 'v');
-        if (_vi) root.preview.hide();
-        else root.preview.show();
+        try {
+            let _vi = Utils.attr(_emojiCtrl, 'v');
+            if (_vi) root.emoji.hide()
+            else root.emoji.show();
+        } catch (e) {
+            console.log(e);
+        }
     });
 
     let meta = root.config.meta;
@@ -707,6 +701,7 @@ ValineFactory.prototype.bind = function (option) {
             }
             root.loading.hide();
         }).catch(ex => {
+        console.log(ex);
             root.loading.hide().ErrorHandler(ex)
         })
     }
@@ -720,6 +715,7 @@ ValineFactory.prototype.bind = function (option) {
             root.loading.hide();
         }
     }).catch(ex => {
+        console.log(ex);
         root.ErrorHandler(ex)
     });
 
@@ -741,7 +737,7 @@ ValineFactory.prototype.bind = function (option) {
         if(_path === '*') uaMeta = `<a href="${rt.get('url')}" class="vsys">${rt.get('url')}</a>`
         let _nick = '';
         let _t = rt.get('link') || '';
-        _nick = _t ? `<a class="vnick" rel="nofollow" href="${_t}" target="_blank" >${rt.get("nick")}</a>` : `<span class="vnick">${rt.get('nick')}</span>`;
+        _nick = _t ? `<a class="vnick" rel="nofollow noreferrer noopener" href="${_t}" target="_blank" >${rt.get("nick")}</a>` : `<span class="vnick">${rt.get('nick')}</span>`;
         _vcard.innerHTML = `${_img}
             <div class="vh" rootid=${rt.get('rid') || rt.id}>
                 <div class="vhead">${_nick} ${uaMeta}</div>
@@ -760,7 +756,7 @@ ValineFactory.prototype.bind = function (option) {
             if (_a && (Utils.attr(_a, 'class') || '').indexOf('at') == -1) {
                 Utils.attr(_a, {
                     'target': '_blank',
-                    'rel': 'nofollow'
+                    'rel': 'nofollow noreferrer noopener'
                 });
             }
         }
@@ -851,6 +847,24 @@ ValineFactory.prototype.bind = function (option) {
     // submitsubmit
     let submitBtn = Utils.find(root.el, '.vsubmit');
     let submitEvt = (e) => {
+        const nickValue = Utils.find(root.el, '.vnick').value.trim();
+        const emailValue = Utils.find(root.el, '.vmail').value.trim();
+        if (!nickValue) {
+            root.alert.show({
+                type: 0,
+                text: '昵称是必填项，不能为空',
+                ctxt: root.locale['ctrl']['ok']
+            });
+            return;
+        }
+        if (!emailValue) {
+            root.alert.show({
+                type: 0,
+                text: '邮箱是必填项，不能为空',
+                ctxt: root.locale['ctrl']['ok']
+            });
+            return;
+        }
         if (Utils.attr(submitBtn, 'disabled')) {
             root.alert.show({
                 type: 0,
@@ -939,9 +953,11 @@ ValineFactory.prototype.bind = function (option) {
                 root.loading.hide();
                 reset();
             } catch (ex) {
+                console.log(ex);
                 root.ErrorHandler(ex);
             }
         }).catch(ex => {
+                console.log(ex);
             root.ErrorHandler(ex);
         })
     }

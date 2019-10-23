@@ -1,5 +1,5 @@
-const win = window,
-    doc = document
+const win = window;
+const doc = document;
 
 const unescapeMap = {};
 const escapeMap = {
@@ -24,15 +24,15 @@ const reHasEscapedHtml = RegExp(reEscapedHtml.source)
 const utils = {
     /**
      * 检测DOM是否加载完毕
-     * @param {Function} callback 
+     * @param {Function} callback
      */
     domReady(callback) {
         if (doc.readyState === "complete" || (doc.readyState !== "loading" && !doc.documentElement.doScroll))
             setTimeout(() => callback && callback(), 0)
         else {
             let handler = () => {
-                doc.removeEventListener("DOMContentLoaded", handler, false)
-                win.removeEventListener("load", handler, false)
+                doc && doc.removeEventListener("DOMContentLoaded", handler, false)
+                win && win.removeEventListener("load", handler, false)
                 callback && callback()
             }
             doc.addEventListener("DOMContentLoaded", handler, false)
@@ -40,7 +40,7 @@ const utils = {
         }
     },
     /**
-     * 动态加载资源库 
+     * 动态加载资源库
      * @param {String} sourceName 资源名 script/link
      * @param {Object} attrs 需要加载属性/值
      * @param {Function} callback 回调函数
@@ -64,6 +64,7 @@ const utils = {
         }
     },
     on(type, el, handler, capture) {
+        if (!el) return;
         type = type.split(' ')
         for (let i = 0, len = type.length; i < len; i++) {
             utils.off(type[i], el, handler, capture)
@@ -73,6 +74,7 @@ const utils = {
         }
     },
     off(type, el, handler, capture) {
+        if (!el) return;
         type = type.split(' ')
         for (let i = 0, len = type.length; i < len; i++) {
             if (el.removeEventListener) el.removeEventListener(type, handler, capture || false);
@@ -95,8 +97,8 @@ const utils = {
     /**
      * Create Element
      * @param {String} name ElementTagName
-     * @param {Object} attrName 
-     * @param {Object} attrVal 
+     * @param {Object} attrName
+     * @param {Object} attrVal
      */
     create(name, attrName, attrVal) {
         let el = document.createElement(name)
@@ -106,7 +108,7 @@ const utils = {
     /**
      * el.querySelector
      * @param {HTMLElement} el HTMLElement
-     * @param {String} selector 
+     * @param {String} selector
      */
     find(el, selector) {
         return el.querySelector(selector)
@@ -115,7 +117,7 @@ const utils = {
     /**
      * el.querySelectorAll
      * @param {HTMLElement} el HTMLElement
-     * @param {String} selector 
+     * @param {String} selector
      */
     findAll(el, selector) {
         return el.querySelectorAll(selector)
@@ -123,9 +125,9 @@ const utils = {
 
     /**
      * get/set attributes
-     * @param {HTMLElement} el 
-     * @param {String | Object} name 
-     * @param {String} value 
+     * @param {HTMLElement} el
+     * @param {String | Object} name
+     * @param {String} value
      */
     attr(el, name, value) {
         if (typeof el.getAttribute === "undefined") return utils.prop(el, name, value)
@@ -140,9 +142,9 @@ const utils = {
     },
     /**
      * get/set props
-     * @param {HTMLElement} el 
-     * @param {String} name 
-     * @param {String} value 
+     * @param {HTMLElement} el
+     * @param {String} name
+     * @param {String} value
      */
     prop(el, name, value) {
         if (value !== undefined) return el[name] = value
@@ -154,8 +156,8 @@ const utils = {
     },
     /**
      * Remove el attribute
-     * @param {HTMLElement} el 
-     * @param {String} names 
+     * @param {HTMLElement} el
+     * @param {String} names
      * @returns {HTMLElement} el
      */
     removeAttr(el, names) {
@@ -173,7 +175,7 @@ const utils = {
     },
     /**
      * Clear element attributes
-     * @param {HTMLElement} el 
+     * @param {HTMLElement} el
      */
     clearAttr(el) {
         let attrs = el.attributes
@@ -207,7 +209,7 @@ const utils = {
     },
     /**
      * Remove Child node
-     * @param {HTMLElement} child 
+     * @param {HTMLElement} child
      */
     remove(child) {
         try {
@@ -218,8 +220,8 @@ const utils = {
     /**
      * 遍历对象或者数组
      * collection, callback(indexInArray, valueOfElement)
-     * @param {Object} collection 
-     * @param {Function} callback 
+     * @param {Object} collection
+     * @param {Function} callback
      * @return {Object} collection
      */
     each(collection, callback) {
